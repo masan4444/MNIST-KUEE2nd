@@ -44,6 +44,11 @@ int main() {
     //float * b = malloc(sizeof(float)*10);
     float * dA = malloc(sizeof(float)*784*10);
     float * db = malloc(sizeof(float)*10);
+    memcpy(db, b_784x10, sizeof(float)*10);
+    scale(10, - 0.01 / 100, db);
+    print(10, 1 ,db);
+    add(10, b_784x10, db);
+    print(10,1, db);
     backward3(A_784x10, b_784x10, train_x + 784*8, train_y[8], y, dA, db);
     //print(784, 1, train_x + 784*8);
     

@@ -2,7 +2,6 @@
 #include "nn.h"
 #include "nnlib.h"
 
-
 int inference3(const float * A, const float * b, const float * x);
 void backward3(const float * A, const float * b, const float * x, unsigned char t, float * y, float * dA, float * db);
 float acc_rate(const float * A, const float * b, const float * test_x, const unsigned char * test_y);
@@ -39,25 +38,23 @@ int main() {
     rand_init(784*10, 44, A);
     rand_init(10, 45, b);
 
-    print(1, 10, b);
-
     int * index = malloc(sizeof(int)*60000);
     int i;
     for (i = 0; i < 60000; i ++) {
         index[i] = i;
     }
-    shuffle(60000, index, 88);
 
     int j;
     int epoch_time;
     for (epoch_time = 0; epoch_time < epoch; epoch_time ++) {
+        shuffle(60000, index, epoch_time); //epoch_time as seed 
         for (i = 0; i < 60000/batch_size; i ++) {
             init(784*10, 0, dA_sum);
             init(10, 0, db_sum);
             for (j = 0; j < batch_size; j ++) {
                 init(784*10, 0, dA);
                 init(10, 0, db);
-                backward3(A, b, train_x + index[i*batch_size + j] * 784, train_y[i*batch_size + j], y, dA, db);
+                backward3(A, b, train_x + index[i*batch_size + j] * 784, train_y[index[i*batch_size + j]], y, dA, db);
                 add(784*10, dA, dA_sum);
                 add(10, db, db_sum);
             }
@@ -66,7 +63,7 @@ int main() {
             scale(10, - learning_rate / batch_size, db_sum);
             add(10, db_sum, b);
         }
-        printf("%f\n", acc_rate(A, b, test_x, test_y));
+        printf("acc_rate:%.2f%%\n", acc_rate(A, b, test_x, test_y));
     }
     return 0;
 }
