@@ -54,6 +54,7 @@ int main() {
             for (j = 0; j < batch_size; j ++) {
                 init(784*10, 0, dA);
                 init(10, 0, db);
+                init(10, 0, y);
                 backward3(A, b, train_x + index[i*batch_size + j] * 784, train_y[index[i*batch_size + j]], y, dA, db);
                 add(784*10, dA, dA_sum);
                 add(10, db, db_sum);
@@ -70,12 +71,13 @@ int main() {
 
 int inference3(const float * A, const float * b, const float * x) {
     float * y = malloc(sizeof(float)*10);
+    init(10, 0, y);
     fc(10, 784, x, A, b, y);
     relu(10, y, y);
     float max = y[0];
     int ans = 0;
     int i;
-    for (i = 1; i < 10; i ++) {
+    for (i = 1; i <= 10; i ++) {
         if (y[i] > max) {
             max = y[i];
             ans = i;
@@ -94,9 +96,11 @@ void backward3(const float * A, const float * b, const float * x, unsigned char 
     softmax(10, x_softmax, y);
 
     float * dx = malloc(sizeof(float)*10);
+    init(10, 0, dx);
     softmaxwithloss_bwd(10, y, t, dx);
     relu_bwd(10, x_relu, dx, dx);
     float * dx_fc = malloc(sizeof(float)*784*10);
+    init(10, 0, dx_fc);
     fc_bwd(10, 784, x, dx, A, dA, db, dx_fc);
 }
 
