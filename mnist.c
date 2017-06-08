@@ -99,9 +99,10 @@ void backward3(const float * A, const float * b, const float * x, unsigned char 
     init(10, 0, dx);
     softmaxwithloss_bwd(10, y, t, dx);
     relu_bwd(10, x_relu, dx, dx);
-    float * dx_fc = malloc(sizeof(float)*784*10);
-    init(10, 0, dx_fc);
+    float * dx_fc = malloc(sizeof(float)*784);
+    init(784, 0, dx_fc);
     fc_bwd(10, 784, x, dx, A, dA, db, dx_fc);
+    free(dx_fc);
 }
 
 float acc_rate(const float * A, const float * b, const float * test_x, const unsigned char * test_y) {

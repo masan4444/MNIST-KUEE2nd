@@ -42,9 +42,10 @@ void print(int m, int n, const float * x) {
     printf("\n");
 }
 void fc(int m, int n, const float * x, const float * A, const float * b, float * y) {
+    init(m, 0, y);
     int i;
+    int j;
     for (i = 0; i < m; i ++) {
-        int j;
         for (j = 0; j < n; j ++) {
             y[i] += (A[i*n + j] * x[j]);
         }
@@ -98,6 +99,9 @@ void relu_bwd(int m, const float * x, const float * dy, float * dx) {
     }
 }
 void fc_bwd(int m, int n, const float * x, const float * dy, const float * A, float * dA, float * db, float * dx) {
+    init(m * n, 0, dA);
+    init(m, 0, db);
+    init(m, 0, dx);
     int i;
     int j;
     for (i = 0; i < m; i ++) {
