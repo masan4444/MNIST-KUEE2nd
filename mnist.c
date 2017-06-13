@@ -47,7 +47,7 @@ int main() {
     int j;
     int epoch_time;
     for (epoch_time = 0; epoch_time < epoch; epoch_time ++) {
-        shuffle(60000, index, epoch_time); //epoch_time as seed 
+        shuffle(60000, index, epoch_time); //epoch_time as seed
         for (i = 0; i < 60000/batch_size; i ++) {
             init(784*10, 0, dA_sum);
             init(10, 0, db_sum);
@@ -98,7 +98,7 @@ void backward3(const float * A, const float * b, const float * x, unsigned char 
     float * dx = malloc(sizeof(float)*10);
     init(10, 0, dx);
     softmaxwithloss_bwd(10, y, t, dx);
-    relu_bwd(10, x_relu, dx, dx);
+    //relu_bwd(10, x_relu, dx, dx);
     float * dx_fc = malloc(sizeof(float)*784);
     init(784, 0, dx_fc);
     fc_bwd(10, 784, x, dx, A, dA, db, dx_fc);
