@@ -165,11 +165,10 @@ void relu(int m, const float * x, float * y) {
 /**
  * @fn
  * 活性化関数softmaxを計算する
- * @param (int m)
- * @param ()
- * @param ()
+ * @param (int m) ベクトルの要素数
+ * @param (const float * x) 入力ベクトルの配列
+ * @param (float * y) 出力ベクトルの配列
  * @return 無し
- * @detail
  */
 void softmax(int m, const float * x, float * y) {
     float max = x[0];
@@ -187,6 +186,16 @@ void softmax(int m, const float * x, float * y) {
         y[i] = exp(x[i] - max)/exp_sum;
     }
 }
+
+/**
+ * @fn
+ * softmax関数とcross_entoropy損失関数の誤差伝播の計算をする
+ * @param (int m) ベクトルの要素数
+ * @param (const float * y) 
+ * @param (float * y)
+ * @return
+ * @detail
+ */
 void softmaxwithloss_bwd(int m, const float * y, unsigned char t, float * dx) {
     int i;
     for (i = 0; i < m; i ++) {
