@@ -26,6 +26,14 @@ int main(int argc, char const * argv[]) {
     return 0;
 }
 
+/**
+ * @fn
+ * 確率的勾配法を用いて学習する
+ * @param (int epoch) エッポク数
+ * @param (int batch_size) rand()のシード値
+ * @param (float * o) 初期化する配列
+ * @return 無し
+ */
 void SGD(int epoch, int batch_size, float initial_learning_rate, const char * filename) {
     float * train_x = NULL;
     unsigned char * train_y = NULL;
@@ -139,7 +147,7 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
     int j;
     int epoch_time;
 
-    printf("optimizer:MomentumSGD num_of_layer:%d\nepoch:%d batch_size:%d learning_rate:%f momentum:%f\n", 1, epoch, batch_size, learning_rate, momentum);
+    printf("optimizer:MomentumSGD layer_num:%d\nepoch:%d batch_size:%d learning_rate:%f momentum:%f\n", 1, epoch, batch_size, learning_rate, momentum);
 
     for (epoch_time = 0; epoch_time < epoch; epoch_time ++) {
         shuffle(60000, index, epoch_time); //epoch_time as seed

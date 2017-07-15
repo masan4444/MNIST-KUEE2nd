@@ -4,7 +4,7 @@
 
 #define FLOAT_SIZE sizeof(float)
 
-#define num_of_layer 3 //3以上ならOK
+#define layer_num 3 //3以上ならOK
 #define m0 50
 #define m1 100
 #define m2 30
@@ -20,18 +20,18 @@ void accRate_and_loss(const float ** A, const float ** b, const float * test_x, 
 void saveAll(const char * filename_without_formatname, const char * formatname, float ** A, float ** b);
 
 /*
-int * m = malloc(sizeof(int)*num_of_layer);
-int * n = malloc(sizeof(int)*num_of_layer);
+int * m = malloc(sizeof(int)*layer_num);
+int * n = malloc(sizeof(int)*layer_num);
 m[0] = m0;
 m[1] = m1;
-m[num_of_layer - 1] = 10;
+m[layer_num - 1] = 10;
 n[0] = 784;
 n[1] = m0;
-n[num_of_layer - 1] = m1;
+n[layer_num - 1] = m1;
 */
 
-int m[num_of_layer] = {m0, m1, 10};
-int n[num_of_layer] = {784, m0, m1};
+int m[layer_num] = {m0, m1, 10};
+int n[layer_num] = {784, m0, m1};
 
 int main(int argc, char const * argv[]) {
     if (!strcmp(argv[1], "train")) {
@@ -61,15 +61,15 @@ void SGD(int epoch, int batch_size, float initial_learning_rate, const char * fi
                &test_x, &test_y, &test_count,
                &width, &height);
 
-    float * A[num_of_layer];
-    float * b[num_of_layer];
-    float * dA[num_of_layer];
-    float * db[num_of_layer];
-    float * dA_sum[num_of_layer];
-    float * db_sum[num_of_layer];
+    float * A[layer_num];
+    float * b[layer_num];
+    float * dA[layer_num];
+    float * db[layer_num];
+    float * dA_sum[layer_num];
+    float * db_sum[layer_num];
 
     int i;
-    for (i = 0; i < num_of_layer; i ++) {
+    for (i = 0; i < layer_num; i ++) {
         A[i] = malloc(FLOAT_SIZE*m[i]*n[i]);
         normal_rand_init(m[i]*n[i], 1, A[i]);
         b[i] = malloc(FLOAT_SIZE*m[i]);
@@ -99,7 +99,7 @@ void SGD(int epoch, int batch_size, float initial_learning_rate, const char * fi
     int j;
     int epoch_time;
 
-    printf("optimizer:SGD num_of_layer:%d\nepoch:%d, batch_size:%d, initial_learning_rate:%f\n", num_of_layer, epoch, batch_size, initial_learning_rate);
+    printf("optimizer:SGD layer_num:%d\nepoch:%d, batch_size:%d, initial_learning_rate:%f\n", layer_num, epoch, batch_size, initial_learning_rate);
 
     for (epoch_time = 0; epoch_time < epoch; epoch_time ++) {
         shuffle(60000, index, epoch_time); //epoch_time as seed
@@ -111,23 +111,23 @@ void SGD(int epoch, int batch_size, float initial_learning_rate, const char * fi
             printf("\r");
 
             int k;
-            for (k = 0; k < num_of_layer; k ++) {
+            for (k = 0; k < layer_num; k ++) {
                 init(m[k]*n[k], 0, dA_sum[k]);
                 init(m[k], 0, db_sum[k]);
             }
             for (j = 0; j < batch_size; j ++) {
-                for (k = 0; k < num_of_layer; k ++) {
+                for (k = 0; k < layer_num; k ++) {
                     init(m[k]*n[k], 0, dA[k]);
                     init(m[k], 0, db[k]);
                 }
                 //init(10, 0, y);
                 backward((const float **)A, (const float **)b, train_x + index[i*batch_size + j] * 784, train_y[index[i*batch_size + j]], y, dA, db);
-                for (k = 0; k < num_of_layer; k ++) {
+                for (k = 0; k < layer_num; k ++) {
                     add(m[k]*n[k], dA[k], dA_sum[k]);
                     add(m[k], db[k], db_sum[k]);
                 }
             }
-            for (k = 0; k < num_of_layer; k ++) {
+            for (k = 0; k < layer_num; k ++) {
                 scale_and_add(m[k]*n[k], -learning_rate / batch_size, dA_sum[k], A[k]);
                 scale_and_add(m[k], -learning_rate / batch_size, db_sum[k], b[k]);
             }
@@ -161,20 +161,20 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
     //int batch_size = 100;
     //float initial_learning_rate = 0.05;
 
-    float * A[num_of_layer];
-    float * b[num_of_layer];
-    float * dA[num_of_layer];
-    float * db[num_of_layer];
-    float * dA_sum[num_of_layer];
-    float * db_sum[num_of_layer];
+    float * A[layer_num];
+    float * b[layer_num];
+    float * dA[layer_num];
+    float * db[layer_num];
+    float * dA_sum[layer_num];
+    float * db_sum[layer_num];
 
-    float * A_last[num_of_layer];
-    float * b_last[num_of_layer];
-    float * A_diff[num_of_layer];
-    float * b_diff[num_of_layer];
+    float * A_last[layer_num];
+    float * b_last[layer_num];
+    float * A_diff[layer_num];
+    float * b_diff[layer_num];
 
     int i;
-    for (i = 0; i < num_of_layer; i ++) {
+    for (i = 0; i < layer_num; i ++) {
         A[i] = malloc(FLOAT_SIZE*m[i]*n[i]);
         normal_rand_init(m[i]*n[i], 1, A[i]);
         b[i] = malloc(FLOAT_SIZE*m[i]);
@@ -211,7 +211,7 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
     int j;
     int epoch_time;
 
-    printf("optimizer:MomentumSGD num_of_layer:%d\nepoch:%d batch_size:%d learning_rate:%f momentum:%f\n", num_of_layer, epoch, batch_size, learning_rate, momentum);
+    printf("optimizer:MomentumSGD layer_num:%d\nepoch:%d batch_size:%d learning_rate:%f momentum:%f\n", layer_num, epoch, batch_size, learning_rate, momentum);
 
     for (epoch_time = 0; epoch_time < epoch; epoch_time ++) {
         shuffle(60000, index, epoch_time); //epoch_time as seed
@@ -222,24 +222,24 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
             progress((float)i / (float)(60000/batch_size));
             printf("\r");
             int k;
-            for (k = 0; k < num_of_layer; k ++) {
+            for (k = 0; k < layer_num; k ++) {
                 init(m[k]*n[k], 0, dA_sum[k]);
                 init(m[k], 0, db_sum[k]);
             }
             for (j = 0; j < batch_size; j ++) {
-                for (k = 0; k < num_of_layer; k ++) {
+                for (k = 0; k < layer_num; k ++) {
                     init(m[k]*n[k], 0, dA[k]);
                     init(m[k], 0, db[k]);
                 }
                 //init(10, 0, y);
                 backward((const float **)A, (const float **)b, train_x + index[i*batch_size + j] * 784, train_y[index[i*batch_size + j]], y, dA, db);
-                for (k = 0; k < num_of_layer; k ++) {
+                for (k = 0; k < layer_num; k ++) {
                     add(m[k]*n[k], dA[k], dA_sum[k]);
                     add(m[k], db[k], db_sum[k]);
                 }
 
             }
-            for (k = 0; k < num_of_layer; k ++) {
+            for (k = 0; k < layer_num; k ++) {
                 memcpy(A_last[k], A[k], FLOAT_SIZE*m[k]*n[k]);
                 scale_and_add(m[k]*n[k], -learning_rate / batch_size, dA_sum[k], A[k]);
                 scale_and_add(m[k]*n[k], momentum, A_diff[k], A[k]);
@@ -261,15 +261,15 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
 }
 
 void inferenceMode(const char * filename_without_formatname, const char * formatname, const char * bmp_filename) {
-    float * A[num_of_layer];
-    float * b[num_of_layer];
+    float * A[layer_num];
+    float * b[layer_num];
 
     int i;
-    for (i = 0; i < num_of_layer; i ++) {
+    for (i = 0; i < layer_num; i ++) {
         A[i] = malloc(FLOAT_SIZE*m[i]*n[i]);
         b[i] = malloc(FLOAT_SIZE*m[i]);
     }
-    for (i = 0; i < num_of_layer; i ++) {
+    for (i = 0; i < layer_num; i ++) {
         char filename[8];
         strcpy(filename, filename_without_formatname);
         char str_i[8];
@@ -286,23 +286,23 @@ void inferenceMode(const char * filename_without_formatname, const char * format
 
 int inference(const float ** A, const float ** b, const float * x, float * y) {
 
-    float * x_relu[num_of_layer - 1];
-    float * x_fc[num_of_layer];
+    float * x_relu[layer_num - 1];
+    float * x_fc[layer_num];
 
     x_fc[0] = malloc(FLOAT_SIZE*n[0]);
     memcpy(x_fc[0], x, FLOAT_SIZE*n[0]);
 
     int i;
-    for (i = 0; i < num_of_layer - 1; i ++) {
+    for (i = 0; i < layer_num - 1; i ++) {
         x_relu[i] =  malloc(FLOAT_SIZE*m[i]);
         fc(m[i], n[i], x_fc[i], A[i], b[i], x_relu[i]);
         x_fc[i + 1] = malloc(FLOAT_SIZE*m[i]);
         relu(m[i], x_relu[i], x_fc[i + 1]);
     }
 
-    float * x_softmax = malloc(FLOAT_SIZE*m[num_of_layer - 1]);
-    fc(m[num_of_layer - 1], n[num_of_layer - 1], x_fc[num_of_layer - 1], A[num_of_layer - 1], b[num_of_layer - 1], x_softmax);
-    softmax(m[num_of_layer - 1], x_softmax, y);
+    float * x_softmax = malloc(FLOAT_SIZE*m[layer_num - 1]);
+    fc(m[layer_num - 1], n[layer_num - 1], x_fc[layer_num - 1], A[layer_num - 1], b[layer_num - 1], x_softmax);
+    softmax(m[layer_num - 1], x_softmax, y);
 
     float max = y[0];
     int ans = 0;
@@ -313,11 +313,11 @@ int inference(const float ** A, const float ** b, const float * x, float * y) {
         }
     }
 
-    for (i = 0; i < num_of_layer - 1; i ++) {
+    for (i = 0; i < layer_num - 1; i ++) {
         free(x_fc[i]);
         free(x_relu[i]);
     }
-    free(x_fc[num_of_layer - 1]);
+    free(x_fc[layer_num - 1]);
     free(x_softmax);
 
     return ans;
@@ -325,15 +325,15 @@ int inference(const float ** A, const float ** b, const float * x, float * y) {
 
 void backward(const float ** A, const float ** b, const float * x, unsigned char t, float * y, float ** dA, float ** db) {
 
-    float * x_relu[num_of_layer - 1];
-    float * x_fc[num_of_layer];
+    float * x_relu[layer_num - 1];
+    float * x_fc[layer_num];
 
     x_fc[0] = malloc(FLOAT_SIZE*n[0]);
     memcpy(x_fc[0], x, FLOAT_SIZE*n[0]);
     //batch_normalization(n[0], x_fc[0]); //////
 
     int i;
-    for (i = 0; i < num_of_layer - 1; i ++) {
+    for (i = 0; i < layer_num - 1; i ++) {
         x_relu[i] =  malloc(FLOAT_SIZE*m[i]);
         //batch_normalization(n[i], x_fc[i]); //////
         fc(m[i], n[i], x_fc[i], A[i], b[i], x_relu[i]);
@@ -341,37 +341,37 @@ void backward(const float ** A, const float ** b, const float * x, unsigned char
         relu(m[i], x_relu[i], x_fc[i + 1]);
     }
 
-    float * x_softmax = malloc(FLOAT_SIZE*m[num_of_layer - 1]);
+    float * x_softmax = malloc(FLOAT_SIZE*m[layer_num - 1]);
     //batch_normalization(n[2], x_fc[2]); //////
-    fc(m[num_of_layer - 1], n[num_of_layer - 1], x_fc[num_of_layer - 1], A[num_of_layer - 1], b[num_of_layer - 1], x_softmax);
-    softmax(m[num_of_layer - 1], x_softmax, y);
+    fc(m[layer_num - 1], n[layer_num - 1], x_fc[layer_num - 1], A[layer_num - 1], b[layer_num - 1], x_softmax);
+    softmax(m[layer_num - 1], x_softmax, y);
 
-    float * dx_relu[num_of_layer - 1];
-    float * dx_fc[num_of_layer];
-    for (i = 0; i < num_of_layer - 1; i ++) {
+    float * dx_relu[layer_num - 1];
+    float * dx_fc[layer_num];
+    for (i = 0; i < layer_num - 1; i ++) {
         dx_relu[i] = malloc(FLOAT_SIZE*m[i]);
         dx_fc[i] = malloc(FLOAT_SIZE*n[i]);
     }
-    dx_fc[num_of_layer - 1] = malloc(FLOAT_SIZE*n[num_of_layer - 1]);
-    float * dx_softmax = malloc(FLOAT_SIZE*m[num_of_layer - 1]);
+    dx_fc[layer_num - 1] = malloc(FLOAT_SIZE*n[layer_num - 1]);
+    float * dx_softmax = malloc(FLOAT_SIZE*m[layer_num - 1]);
 
-    softmaxwithloss_bwd(m[num_of_layer - 1], y, t, dx_softmax);
-    fc_bwd(m[num_of_layer - 1], n[num_of_layer - 1], x_fc[num_of_layer - 1], dx_softmax, A[num_of_layer - 1], dA[num_of_layer - 1], db[num_of_layer - 1], dx_fc[num_of_layer - 1]);
+    softmaxwithloss_bwd(m[layer_num - 1], y, t, dx_softmax);
+    fc_bwd(m[layer_num - 1], n[layer_num - 1], x_fc[layer_num - 1], dx_softmax, A[layer_num - 1], dA[layer_num - 1], db[layer_num - 1], dx_fc[layer_num - 1]);
 
-    for (i = num_of_layer - 2; i >= 0; i --) {
+    for (i = layer_num - 2; i >= 0; i --) {
         relu_bwd(m[i], x_relu[i], dx_fc[i + 1], dx_relu[i]);
         fc_bwd(m[i], n[i], x_fc[i], dx_relu[i], A[i], dA[i], db[i], dx_fc[i]);
     }
 
-    for (i = 0; i < num_of_layer - 1; i ++) {
+    for (i = 0; i < layer_num - 1; i ++) {
         free(x_fc[i]);
         free(x_relu[i]);
         //free(dx_fc[i]);
         //free(dx_relu[i]);
     }
     free(x_softmax);
-    //free(x_fc[num_of_layer - 1]);
-    //free(dx_fc[num_of_layer - 1]);
+    //free(x_fc[layer_num - 1]);
+    //free(dx_fc[layer_num - 1]);
     //free(dx_softmax);
 
 }
@@ -393,7 +393,7 @@ void accRate_and_loss(const float ** A, const float ** b, const float * test_x, 
 
 void saveAll(const char * filename_without_formatname, const char * formatname, float ** A, float ** b) {
     int i;
-    for (i = 0; i < num_of_layer; i ++) {
+    for (i = 0; i < layer_num; i ++) {
         char filename[8];
         strcpy(filename, filename_without_formatname);
         char str_i[8];
