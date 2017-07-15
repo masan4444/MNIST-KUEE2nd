@@ -293,7 +293,16 @@ float cross_entropy_error(const float * y, int t) {
     return - log(y[t] + 1e-7);
 }
 
-
+/**
+ * @fn
+ * パラメータを保存する
+ * @param (const char * filename) 保存するファイルの名前
+ * @param (int m) 重みパラメータ，行列Aの行数であり，バイアスパラメータ，ベクトルbの要素数
+ * @param (int n) 重みパラメータ，行列Aの列数
+ * @param (const float * A) 重みパラメータ，行列の配列
+ * @param (const float * b) バイアスパラメータ，ベクトルbの配列
+ * @return 無し
+ */
 void save(const char * filename, int m, int n, const float * A, const float * b) {
     FILE * fp;
     fp = fopen(filename, "w");
@@ -312,6 +321,17 @@ void save(const char * filename, int m, int n, const float * A, const float * b)
     }
     fclose(fp);
 }
+
+/**
+ * @fn
+ * パラメータを読み込む
+ * @param (const char * filaneme) 読み込むファイル名
+ * @param (int m) 重みパラメータ，行列Aの行数であり，バイアスパラメータ，ベクトルbの要素数
+ * @param (int n) 重みパラメータ，行列Aの列数
+ * @param (float * A) 重みパラメータ，行列の配列
+ * @param (float * b) バイアスパラメータ，ベクトルbの配列
+ * @return 無し
+ */
 void load(const char * filename, int m, int n, float * A, float * b) {
     FILE * fp;
 	if ((fp = fopen(filename, "r")) == NULL) {
@@ -333,21 +353,45 @@ void load(const char * filename, int m, int n, float * A, float * b) {
     fclose(fp);
 }
 
-double normal_rand(float mu, float sigma) {
+/**
+ * @fn
+ * 正規分布に従った乱数を生成する
+ * @param (float mu) 正規分布の平均μ
+ * @param (float sigma) 正規分布の分散σ
+ * @return 正規分布に従った乱数
+ * @detail ボックス＝ミュラー法を用いて，一様乱数x,yから正規分布に従った乱数を生成している
+ */
+float normal_rand(float mu, float sigma) {
     float x = ((float)rand() + 1.0) / ((float)RAND_MAX + 2.0);
     float y = ((float)rand() + 1.0) / ((float)RAND_MAX + 2.0);
     float z = sqrt(- 2.0*log(x)) * sin(2.0*M_PI*y);
     return mu + sigma*z;
 }
+
+/**
+ * @fn
+ * 要素数nの配列を，平均0,分散sqrt(2/n)の乱数で初期化する
+ * @param (int n) 配列のサイズ
+ * @param (unsigned seed) rand()のシード値
+ * @param (float * o) 初期化する配列
+ * @return 無し
+ */
 void normal_rand_init(int n, unsigned seed, float * o) {
     srand(seed);
-    float sigma = sqrt(2 / (float)n);
+    float sigma = sqrt(2.0 / (float)n);
     int i;
     for (i = 0; i < n; i ++) {
         o[i] = normal_rand(0, sigma);
     }
 }
 
+/**
+ * @fn
+ * 進捗状況を視覚的に分かりやすく表示する
+ * @param (float) 進捗状況(0 ~ 1)
+ * @return 無し
+ * @detail [====>      ] 55.2% のように表示する
+ */
 void progress(float x) {
     int count = (int)(x / 0.1);
     printf("[");
@@ -360,22 +404,4 @@ void progress(float x) {
         printf(" ");
     }
     printf("] %.1f%% ", x * 100.0);
-}
-
-void batch_normalization(int m, float * x) {
-    float avg = 0;
-    float e = 10e-5;
-    int i;
-    for (i = 0; i < m; i ++) {
-        avg += x[i];
-    }
-    avg /= m;
-    float sigma = 0;;
-    for (i = 0; i < m; i ++) {
-        sigma += pow((x[i] - avg), 2);
-    }
-    sigma /= m;
-    for (i = 0; i < m; i ++) {
-        x[i] = (x[i] - avg) / sqrt(sigma + e);
-    }
 }

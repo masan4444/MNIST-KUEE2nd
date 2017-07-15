@@ -19,14 +19,12 @@ void relu_bwd(int m, const float * x, const float * dy, float * dx);
 void fc_bwd(int m, int n, const float * x, const float * dy, const float * A, float * dA, float * db, float * dx);
 
 void shuffle(int n, int * x, unsigned seed);
-float loss(const float * y, int t);
+float cross_entropy_error(const float * y, int t);
 void save(const char * filename, int m, int n, const float * A, const float * b);
 void load(const char * filename, int m, int n, float * A, float * b);
-double normal_rand(float mu, float sigma);
+float normal_rand(float mu, float sigma);
 void normal_rand_init(int n, unsigned seed, float * o);
 
 void progress(float x);
-
-void batch_normalization(int m, float * x);
 
 #endif // _NNLIB_H_
