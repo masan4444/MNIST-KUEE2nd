@@ -1,3 +1,10 @@
+/**
+ * @file nnlib.c
+ * @brief ニューラルネットワークで必要な関数をまとめたソースファイル
+ * @author masan4444
+ * @date 2017/07/15
+ */
+
 #include "nnlib.h"
 #include <stdio.h>
 #include <math.h>
@@ -189,12 +196,12 @@ void softmax(int m, const float * x, float * y) {
 
 /**
  * @fn
- * softmax関数とcross_entoropy損失関数の誤差伝播の計算をする
+ * softmax関数とcross_entoropyの誤差逆伝播の計算をする
  * @param (int m) ベクトルの要素数
- * @param (const float * y) 
- * @param (float * y)
- * @return
- * @detail
+ * @param (const float * y) 出力ベクトルの配列
+ * @param (unsigned char t) 正解ラベル，0~9の数字
+ * @param (float * dx) 偏微分の配列
+ * @return 無し
  */
 void softmaxwithloss_bwd(int m, const float * y, unsigned char t, float * dx) {
     int i;
@@ -206,6 +213,16 @@ void softmaxwithloss_bwd(int m, const float * y, unsigned char t, float * dx) {
        }
     }
 }
+
+/**
+ * @fn
+ * ReLu関数の誤差逆伝播を計算する
+ * @param (int m) ベクトルの要素数
+ * @param (const float * x) 入力ベクトルの配列
+ * @param (const float * dy) 上流の偏微分の配列
+ * @param (float * dx) 偏微分の配列
+ * @return 無し
+ */
 void relu_bwd(int m, const float * x, const float * dy, float * dx) {
     int i;
     for (i = 0; i < m; i ++) {
@@ -216,6 +233,19 @@ void relu_bwd(int m, const float * x, const float * dy, float * dx) {
         }
     }
 }
+
+/**
+ * @fn
+ * 全結合層の誤差逆伝播を計算する
+ * @param (int m) 入力ベクトルの要素数
+ * @param (const float * x) 入力ベクトルの配列
+ * @param (const float * dy) 上流の偏微分の配列
+ * @param (cosnt float * A) 重みパラメータ行列の配列
+ * @param (float * dA) Aの偏微分の配列
+ * @param (float * db) bの偏微分の配列
+ * @param (float * dx) 偏微分の配列
+ * @return 無し
+ */
 void fc_bwd(int m, int n, const float * x, const float * dy, const float * A, float * dA, float * db, float * dx) {
     init(m * n, 0, dA);
     init(m, 0, db);
@@ -230,21 +260,40 @@ void fc_bwd(int m, int n, const float * x, const float * dy, const float * A, fl
         db[i] = dy[i];
     }
 }
+
+/**
+ * @fn
+ * 要素が1からnの配列の要素をランダムに並び替える
+ * @param (int n) 配列のサイズ
+ * @param (int * x) 入れ替える配列
+ * @param (unsigned seed) rand()のシード値
+ * @return 無し
+ */
 void shuffle(int n, int * x, unsigned seed) {
     int i;
     int j;
-    int s;
+    int store;
     srand(seed);
     for (i = 0; i < n; i ++) {
        j = rand() % n;
-       s = x[i];
+       store = x[i];
        x[i] = x[j];
-       x[j] = s;
+       x[j] = store;
     }
 }
-float loss(const float * y, int t) {
+
+/**
+ * @fn
+ * 交差エントロピー誤差を計算する
+ * @param (const float * y) 出力ベクトルの配列
+ * @param (int t) 正解ラベル，0~9
+ * @return 無し
+ */
+float cross_entropy_error(const float * y, int t) {
     return - log(y[t] + 1e-7);
 }
+
+
 void save(const char * filename, int m, int n, const float * A, const float * b) {
     FILE * fp;
     fp = fopen(filename, "w");

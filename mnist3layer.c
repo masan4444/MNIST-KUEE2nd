@@ -227,7 +227,7 @@ void accRate_and_loss(const float * A, const float * b, const float * test_x, co
         if (inference3(A, b, test_x + i*784, y) == test_y[i]) {
             sum_acc ++;
         }
-        sum_loss += loss(y, test_y[i]);
+        sum_loss += cross_entropy_error(y, test_y[i]);
     }
     *accRate = sum_acc * 100.0 / 10000;
     *Loss = sum_loss / 10000;
