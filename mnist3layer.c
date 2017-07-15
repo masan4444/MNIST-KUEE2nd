@@ -3,6 +3,9 @@
  * @brief fc -> relu -> softmaxの3層構造のニューラルネットワークの学習と推論をするプログラム
  * @author masan4444
  * @date 2017/07/15
+ * @detail
+ * 学習：「./実行ファイル名 train {SGD, MomentumSGD} パラメータを保存するファイル名」で指定した勾配法で学習し，指定したファイル名でパラメータを保存する
+ * 推論：「./実行ファイル名 パラメータが保存されているファイル名 画像ファイル名」で推論できる
  */
 
 #include <string.h>
@@ -21,10 +24,11 @@ void inferenceMode(const char * filename, const char * bmp_filename);
 
 int main(int argc, char const * argv[]) {
     if (!strcmp(argv[1], "train")) {
-        //SGD(50, 100, 1, argv[2]);
-        //(epoch, batch_size, initial_learning_rate, filename)
-        MomentumSGD(10, 100, 0.01, 0.1, "S.dat");
-        //(epoch, batch_size, learning_rate, momentum, filename)
+        if (!strcmp(argv[2], "SGD")) {
+            SGD(50, 100, 1, argv[3]);
+        } else if (!strcmp(argv[2], "MomentumSGD")) {
+            MomentumSGD(10, 100, 0.01, 0.1, argv[3]);
+        }
 
     } else if (!strcmp(argv[1], "inference")) {
         inferenceMode(argv[2], argv[3]);
