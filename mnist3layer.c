@@ -1,3 +1,10 @@
+/**
+ * @file mnist3layer.c
+ * @brief fc -> relu -> softmaxの3層構造のニューラルネットワークの学習と推論をするプログラム
+ * @author masan4444
+ * @date 2017/07/15
+ */
+
 #include <string.h>
 #include "nn.h"
 #include "nnlib.h"
