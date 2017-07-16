@@ -51,18 +51,40 @@
 ```
 とすると，`A?.dat`を用いて，`number.bmp`に書かれている数字を推論する．
 ### プログラムの処理の流れ
+追記予定
+
 
 
 ## 関数の説明
 ### `nnlib.c`の関数
 #### 1．行列の表示 `print`
-```c:
+```c
 void print(int m, int n, const float * x);
 ```
- 配列を行列として表示する
+配列を`m * n`行列として表示する．
 #### 2．配列同士の足し算 `add`
 ```c
 void add(int n, const float * x, float * o)
 ```
-
+要素数が`n`である配列同士の足し算を行う．配列`o`の要素が`x`に足される．
+#### 3．配列同士の引き算 `sub`
+```c
+void sub(int n, const float * x, const float * y, float * o)
+```
+要素が`n`である配列同士の引き算を行う．配列`o`に`x`から`y`を引いた結果が代入される形となる．`MomentumSGD`で使用される．
+#### 4．配列を定数倍する `scale`
+```c
+void scale(int n, float x, float * o)
+```
+要素数が`n`の配列`o`の各要素に`x`をかける．
+#### 5．配列を定数倍し，別の配列に足す `scale_and_add`
+```c
+void scale_and_add(int n, float x, const float * y, float * o)
+```
+要素数が`n`の配列`y`の各要素に`x`をかけ，その結果を`o`に足す．
+#### 6．配列の初期化 `init`
+```c
+void print(int m, int n, const float * x);
+```
+配列を`m * n`行列として表示する．
 ## 拡張・改善した点
