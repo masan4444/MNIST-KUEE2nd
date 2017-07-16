@@ -414,6 +414,19 @@ void backward(const float ** A, const float ** b, const float * x, unsigned char
 
 }
 
+/**
+ * @fn
+ * (fc -> relu) * (layer_num - 1) -> fc -> softmax の(layer_num * 2)層構造のニューラルネットワークに対して，テストデータの正解率と損失関数を表示する
+ * @param (const float ** A) 重みパラメータ，行列Aの配列の配列．i番目の全結合層の重みパラメータ行列がA[i]である．
+ * @param (const float ** b) バイアスパラメータ，ベクトルbの配列の配列．i番目の全結合層のバイアスパラメータベクトルがb[i]である．
+ * @param (float * y) 出力ベクトルの配列
+ * @param (const float * test_x) 入力ベクトル(テストデータ)をすべて集めた配列
+ * @param (const unsigned char * test_y) 正解ラベル(テストデータ)をすべて集めた配列
+ * @param (float * accRate) 正解率を格納するポインタ
+ * @param (float * Loss) 損失関数の値を格納するポインタ
+ * @return 無し
+ * @detail inference関数で出力ベクトルを求めることで，正解率と損失関数を同時に求めるようにしている．そのため正解率と損失関数の値はポインタで取得している．
+ */
 void accRate_and_loss(const float ** A, const float ** b, const float * test_x, const unsigned char * test_y, float * accRate, float * Loss) {
     int sum_acc = 0;
     float sum_loss = 0;
@@ -429,6 +442,16 @@ void accRate_and_loss(const float ** A, const float ** b, const float * test_x, 
     *Loss = sum_loss / 10000;
 }
 
+/**
+ * @fn
+ * 学習したパラメータを保存する
+ * @param (const char * filename_without_formatname) 学習したパラメータを保存するファイル名．ただし拡張子は含まない．
+ * @param (const char * formatname) パラメータを保存するファイルの拡張子
+ * @param (const float ** A) 重みパラメータ，行列Aの配列の配列．i番目の全結合層の重みパラメータ行列がA[i]である
+ * @param (const float ** b) バイアスパラメータ，ベクトルbの配列の配列．i番目の全結合層のバイアスパラメータベクトルがb[i]である．
+ * @return 無し
+ * @detail 例としてsaveAll(X, dat, A, b)とすると，A[0],b[0]をA1.datに，A[1],b[1]をA2.datに保存する．
+ */
 void saveAll(const char * filename_without_formatname, const char * formatname, float ** A, float ** b) {
     int i;
     for (i = 0; i < layer_num; i ++) {
