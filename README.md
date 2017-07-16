@@ -1,2 +1,30 @@
-# MNIST-KUEE2nd
-MNIST project in exercise of clang programming in KUEE2nd
+# 最終課題
+###### 氏名:
+###### 学籍番号:
+***
+## プログラム概要
+ニューラルネットワークを実装し，学習させるため4つのソースコードを作成した．
+* nnlib.c ```
+ニューラルネットワークに必要な関数をまとめたライブラリ
+```
+* nnlib.h ```
+nnlib.cのヘッダーファイル
+```
+* mnist3layer.c```
+3層ニューラルネットワーク (fc -> relu -> softmax) の学習．推論を行うプログラム
+```
+* mnistNlayer.c ```
+6層以上のニューラルネットワーク (fc -> relu).... -> softmax) の学習．推論を行うプログラム
+```
+***
+## プログラムについて
+mnist3layer.cの場合
+```c:mnist3layer
+./a.out train {optimizerの指定} {学習したパラメータを保存するファイル名}
+```
+とすることで，
+
+***
+## 関数の説明
+***
+## 拡張・改善した点
