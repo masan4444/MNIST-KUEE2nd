@@ -1,13 +1,23 @@
+/**
+ * @file mnist3layer.c
+ * @brief (fc -> relu) * (layer_num - 1) -> fc -> softmaxの，(layer_num * 2)層構造のニューラルネットワークの学習と推論をするプログラム
+ * @author masan4444
+ * @date 2017/07/15
+ * @detail
+ * 学習：「./実行ファイル名 train {SGD, MomentumSGD} パラメータを保存するファイル名からファイル形式を除いたもの ファイル形式」で，指定した勾配法で学習し，指定したファイル名でパラメータを保存する
+ * 推論：「./実行ファイル名 パラメータが保存されているファイル名からファイル形式を除いたもの ファイル形式 画像ファイル名」で推論できる
+ * 例として，「./a.out train SGD A dat」とすると，SGDで学習し，学習したパラメータをA1.dat, A2.dat, A3.dat...として保存する．．
+ */
+
 #include <string.h>
 #include "nn.h"
 #include "nnlib.h"
 
 #define FLOAT_SIZE sizeof(float)
 
-#define layer_num 3 //3以上ならOK
-#define m0 50
-#define m1 100
-#define m2 30
+#define layer_num 3 //層の総数としてはlayer_num * 2となる
+#define m0 50 //1つ目の全結合層の出力ベクトルの要素数
+#define m1 100 //2つ目の全結合層の出力ベクトルの要素数
 
 void SGD(int epoch, int batch_size, float initial_learning_rate, const char * filename_without_formatname, const char * formatname);
 void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum, const char * filename_without_formatname, const char * formatname);
@@ -19,25 +29,17 @@ void accRate_and_loss(const float ** A, const float ** b, const float * test_x, 
 
 void saveAll(const char * filename_without_formatname, const char * formatname, float ** A, float ** b);
 
-/*
-int * m = malloc(sizeof(int)*layer_num);
-int * n = malloc(sizeof(int)*layer_num);
-m[0] = m0;
-m[1] = m1;
-m[layer_num - 1] = 10;
-n[0] = 784;
-n[1] = m0;
-n[layer_num - 1] = m1;
-*/
-
 int m[layer_num] = {m0, m1, 10};
 int n[layer_num] = {784, m0, m1};
+//それぞれの全結合層の重みパラメータ，行列Aのサイズ
 
 int main(int argc, char const * argv[]) {
     if (!strcmp(argv[1], "train")) {
-        //SGD(30, 100, 0.5, argv[2], argv[3]);
-        // (epoch, batch_size, filename_without_formatname, formatname)
-        MomentumSGD(30, 100, 001, 0.1, argv[2], argv[3]);
+        if (!strcmp(argv[2], "SGD")) {
+            SGD(30, 100, 0.5, argv[3], argv[4]);
+        } else if (!strcmp(argv[2], "MomentumSGD")) {
+            MomentumSGD(30, 100, 001, 0.1, argv[3], argv[4]);
+        }
     } else if (!strcmp(argv[1], "inference")) {
         inferenceMode(argv[2], argv[3], argv[4]);
         // (filename_without_formatname, formatname, bmp_filename),
@@ -45,6 +47,17 @@ int main(int argc, char const * argv[]) {
     return 0;
 }
 
+/**
+ * @fn
+ * 確率的勾配法を用いて学習する．ただしエッポクが進むごとに学習率を変化させている．
+ * @param (int epoch) エッポクの総数
+ * @param (int batch_size) batchのサイズ
+ * @param (float initial_learning_rate) 最初の学習率
+ * @param (const char * filename_without_formatname) 学習したパラメータを保存するファイル名．ただし拡張子は含まない．
+ * @param (const char * formatname) パラメータを保存するファイルの拡張子
+ * @return 無し
+ * @detail エッポクごとに学習率を減少させていくことで効率的に学習している．具体的にはエッポク数nの時の学習率を「最初の学習率 / n」としている．
+ */
 void SGD(int epoch, int batch_size, float initial_learning_rate, const char * filename_without_formatname, const char * formatname) {
     float * train_x = NULL;
     unsigned char * train_y = NULL;
@@ -55,7 +68,7 @@ void SGD(int epoch, int batch_size, float initial_learning_rate, const char * fi
     int test_count = - 1;
 
     int width = - 1;
-    int height = - 13;
+    int height = - 1;
 
     load_mnist(&train_x, &train_y, &train_count,
                &test_x, &test_y, &test_count,
@@ -80,14 +93,6 @@ void SGD(int epoch, int batch_size, float initial_learning_rate, const char * fi
         dA_sum[i] = malloc(FLOAT_SIZE*m[i]*n[i]);
         db_sum[i] = malloc(FLOAT_SIZE*m[i]);
     }
-    /*
-    memcpy(A[0], A1_784_50_100_10, FLOAT_SIZE*m[0]*n[0]);
-    memcpy(b[0], b1_784_50_100_10, FLOAT_SIZE*m[0]);
-    memcpy(A[1], A2_784_50_100_10, FLOAT_SIZE*m[1]*n[1]);
-    memcpy(b[1], b2_784_50_100_10, FLOAT_SIZE*m[1]);
-    memcpy(A[2], A3_784_50_100_10, FLOAT_SIZE*m[2]*n[2]);
-    memcpy(b[2], b3_784_50_100_10, FLOAT_SIZE*m[2]);
-    */
 
     float * y = malloc(FLOAT_SIZE*10);
 
@@ -141,6 +146,18 @@ void SGD(int epoch, int batch_size, float initial_learning_rate, const char * fi
     }
 }
 
+/**
+ * @fn
+ * 確率的勾配降下法を用いて学習する．ただし更新に慣性項と呼ばれるものを付与している．
+ * @param (int epoch) エッポクの総数
+ * @param (int batch_size) batchのサイズ
+ * @param (float learning_rate) 学習率
+ * @param (float momentum) どれだけ慣性を付与するかのハイパーパラメータ
+ * @param (const char * filename_without_formatname) 学習したパラメータを保存するファイル名．ただし拡張子は含まない．
+ * @param (const char * formatname) パラメータを保存するファイルの拡張子
+ * @return 無し
+ * @detail パラメータ更新の際に，前回のパラメータの更新量にmomentumをかけた量を追加することで，学習をより慣性的なものにしている．
+ */
 void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum, const char * filename_without_formatname, const char * formatname) {
     float * train_x = NULL;
     unsigned char * train_y = NULL;
@@ -192,14 +209,6 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
         init(m[i]*n[i], 0, A_diff[i]);
         init(m[i], 0, b_diff[i]);
     }
-    /*
-    memcpy(A[0], A1_784_50_100_10, FLOAT_SIZE*m[0]*n[0]);
-    memcpy(b[0], b1_784_50_100_10, FLOAT_SIZE*m[0]);
-    memcpy(A[1], A2_784_50_100_10, FLOAT_SIZE*m[1]*n[1]);
-    memcpy(b[1], b2_784_50_100_10, FLOAT_SIZE*m[1]);
-    memcpy(A[2], A3_784_50_100_10, FLOAT_SIZE*m[2]*n[2]);
-    memcpy(b[2], b3_784_50_100_10, FLOAT_SIZE*m[2]);
-    */
 
     float * y = malloc(FLOAT_SIZE*10);
 
@@ -260,6 +269,14 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
     }
 }
 
+/**
+ * @fn
+ * (fc -> relu) * (layer_num - 1) -> fc -> softmaxの，(layer_num * 2)層構造のニューラルネットワークで，与えられた画像に書かれている数字を推論し，表示する．
+ * @param (const char * filename_without_formatname) 学習したパラメータを保存しているファイル名．ただし拡張子は含まない．
+ * @param (const char * formatname) パラメータを保存しているファイルの拡張子
+ * @param (const char * bmp_filename) 数字が書かれている画像ファイル名
+ * @return 無し
+ */
 void inferenceMode(const char * filename_without_formatname, const char * formatname, const char * bmp_filename) {
     float * A[layer_num];
     float * b[layer_num];
@@ -284,8 +301,17 @@ void inferenceMode(const char * filename_without_formatname, const char * format
     printf("%d\n", inference((const float **)A, (const float **)b, x, y));
 }
 
+/**
+ * @fn
+ * (fc -> relu) * (layer_num - 1) -> fc -> softmax の(layer_num * 2)層構造のニューラルネットワークで推論する
+ * @param (const float ** A) 重みパラメータ，行列Aの配列の配列．i番目の全結合層の重みパラメータ行列がA[i]である．
+ * @param (const float ** b) バイアスパラメータ，ベクトルbの配列の配列．i番目の全結合層のバイアスパラメータベクトルがb[i]である．
+ * @param (const float * x) 入力ベクトルの配列
+ * @param (float * y) 出力ベクトルの配列
+ * @return ネットワークによって推論される数字(0 ~ 9)
+ * @detail 引数に出力ベクトルの配列を追加することで，下記のaccRate_and_loss関数のおいて，正解率と損失関数を同時に求めている．
+ */
 int inference(const float ** A, const float ** b, const float * x, float * y) {
-
     float * x_relu[layer_num - 1];
     float * x_fc[layer_num];
 
@@ -323,6 +349,18 @@ int inference(const float ** A, const float ** b, const float * x, float * y) {
     return ans;
 }
 
+/**
+ * @fn
+ * (fc -> relu) * (layer_num - 1) -> fc -> softmax の(layer_num * 2)層構造のニューラルネットワークを，誤差逆伝播法を用いて偏微分を求める
+ * @param (const float ** A) 重みパラメータ，行列Aの配列の配列．i番目の全結合層の重みパラメータ行列がA[i]である．
+ * @param (const float ** b) バイアスパラメータ，ベクトルbの配列の配列．i番目の全結合層のバイアスパラメータベクトルがb[i]である．
+ * @param (const float * x) 入力ベクトルの配列
+ * @param (unsigned char t) 正解ラベル(0 ~ 9)
+ * @param (float * y) 出力ベクトルの配列
+ * @param (float ** dA) 重みパラメータAの偏微分の配列の配列．i番目の全結合層の重みパラメータの偏微分がdA[i]である．
+ * @param (float ** db) バイアスパラメータbの偏微分の配列の配列．i番目の全結合層のバイアスパラメータの偏微分がdb[i]である．
+ * @return 無し
+ */
 void backward(const float ** A, const float ** b, const float * x, unsigned char t, float * y, float ** dA, float ** db) {
 
     float * x_relu[layer_num - 1];

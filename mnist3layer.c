@@ -225,7 +225,6 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
  * @return ネットワークによって推論される数字(0 ~ 9)
  * @detail 引数に出力ベクトルの配列を追加することで，下記のaccRate_and_loss関数のおいて，正解率と損失関数を同時に求めることが出来た．
  */
-
 int inference3(const float * A, const float * b, const float * x, float * y) {
     init(10, 0, y);
     fc(10, 784, x, A, b, y);
