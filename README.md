@@ -54,12 +54,13 @@
 
 
 ## 関数の説明
-### 1．行列の表示 `print`
-```c:nnlib.c
+### `nnlib.c`の関数
+#### 1．行列の表示 `print`
+```c:
 void print(int m, int n, const float * x);
 ```
  配列を行列として表示する
-### 2．配列同士の足し算 `add`
+#### 2．配列同士の足し算 `add`
 ```c
 void add(int n, const float * x, float * o)
 ```
