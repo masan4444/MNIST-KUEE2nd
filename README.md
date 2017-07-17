@@ -97,7 +97,7 @@ void rand_init(int n, unsigned seed, float * o)
 ```c
 void fc(int m, int n, const float * x, const float * A, const float * b, float * y)
 ```
-サイズが`n`の入力ベクトルを受け取り，サイズが`m`の出力ベクトルを計算する．`x`が入力ベクトルの配列であり，`y`が出力ベクトルの配列である．`A`は全結合層の重みパラメータであり，`m * n`の行列を配列に格納したものである．`b`はバイアスパラメータであり，要素数がが`m`のベクトルを配列に格納したもの．．
+サイズが`n`の入力ベクトルを受け取り，サイズが`m`の出力ベクトルを計算する．`x`が入力ベクトルの配列であり，`y`が出力ベクトルの配列である．`A`は全結合層の重みパラメータであり，`m * n`の行列を配列に格納したものである．`b`はバイアスパラメータであり，要素数がが`m`のベクトルを配列に格納したもの．
 #### 9．活性化関数ReLu `relu`
 ```c
 void relu(int m, const float * x, float * y)
@@ -133,5 +133,33 @@ void shuffle(int n, int * x, unsigned seed)
 float cross_entropy_error(const float * y, int t)
 ```
 ニューラルネットワークの出力ベクトルが`y`，正解ラベルが`t`のときの交差エントロピー誤差を計算する．
-#### 16
+#### 16．パラメータの保存 `save`
+```c
+void save(const char * filename, int m, int n, const float * A, const float * b)
+```
+`m * n`行列の重みパラメータ`A`,`m`行ベクトルのバイアスパラメータ`b`を`char`型配列`filename`に格納されているファイル名に保存する．
+#### 17．パラメータの読込 `load`
+```c
+void load(const char * filename, int m, int n, float * A, float * b)
+```
+`m * n`行列の重みパラメータ`A`,`m`行ベクトルのバイアスパラメータ`b`を`char`型配列`filename`に格納されているファイル名から読み込む．
+#### 18．正規分布に従った乱数を生成 `normal_rand`
+```c
+float normal_rand(float mu, float sigma)
+```
+平均`mu`，分散`sigma`の正規分布に従った`float`型の乱数を生成し，返り値で返す．
+#### 19．サイズが'n'の配列を平均0，分散sqrt(2/n)の正規分布に従った乱数で初期化 `normal_rand_init`
+```c
+void normal_rand_init(int n, unsigned seed, float * o)
+```
+サイズが`n`の配列`o`を，平均が`0`，分散が`sqrt(2 / n)`の正規分布に従った乱数で初期化する．`seed`は`rand()`のシード値．
+#### 20．進捗状況の表示 `progress`
+```c
+void progress(float x)
+```
+進捗状況`x`(0から1までの値)をグラフとして表示する．例として，`x`が0.753のとき
+```bash
+[======>   ] 75.3%
+```
+のように表示する．
 ## 拡張・改善した点
