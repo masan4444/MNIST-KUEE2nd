@@ -181,7 +181,7 @@ void progress(float x)
 [======>   ] 75.3%
 ```
 のように表示する．
-### 2．`mnist3layer.c`の関数
+### 2．3層ニューラルネットワーク`mnist3layer.c`の関数
 #### 2-1．確率的勾配降下法 `SGD`
 ```c
 void SGD(int epoch, int batch_size, float initial_learning_rate, const char * filename)
@@ -196,11 +196,70 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
 ```c
 int inference3(const float * A, const float * b, const float * x, float * y)
 ```
-fc -> relu -> softmax の3層で推論する．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`x`は入力ベクトルの配列，`y`は出力ベクトルの配列である．
+fc -> relu -> softmax の3層で推論する．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`x`は入力ベクトルの配列，`y`は出力ベクトルの配列である．引数に出力ベクトルの配列を追加することで，下記のaccRate_and_loss関数のおいて，正解率と損失関数を同時に求めることが出来た．
 #### 2-4．3層の誤差逆伝播 `backward3`
 ```c
 void backward3(const float * A, const float * b, const float * x, unsigned char t, float * y, float * dA, float * db)
 ```
 fc -> relu -> softmax の3層のニューラルネットワークを，誤差逆伝播法を用いて勾配を求める．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`x`は入力ベクトルの配列，`t`は正解ラベル，`y`は出力ベクトルの配列，`dA`,`db`はそれぞれ`A`,`b`の勾配である．
+#### 2-5．正解率と損失そ計算 `accRate_and_loss`
+```c
+void accRate_and_loss(const float * A, const float * b, const float * test_x, const unsigned char * test_y, float * accRate, float * Loss)
+```
+fc -> relu -> softmax の3層のニューラルネットワークに対して，テストデータの正解率と損失関数を表示する．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`test_x`は入力ベクトル(テストデータ)をすべて集めた配列，`test_y`は正解ラベル(テストデータ)をすべて集めた配列である．正解率と損失を同時に求めているため，計算結果はポインタで所得している．
+#### 2-6．画像データをもとに，数字を推論 `inferenceMode`
+```c
+void inferenceMode(const char * filename, const char * bmp_filename)
+```
+`filename`に保存されているパラメータを用いて，`bmp_filename`に書かれている数字を3層ニューラルネットワークで推論する．
+### 3．N層ニューラルネットワーク`mnistNlayer.c`の関数
+基本的に`mnist3layer.c`と同じであるが，相違点を次章で述べる．
 
 ## 拡張・改善した点
+### 1．N層ニューラルネットワーク`mnistNlayer.c`
+#### 1-1．概要
+6層のニューラルネットワークを拡張子し，6層以上のニューラルネットワークも学習することが出来るようにしたもの．具体的には `((FC -> ReLU) * (num_layer - 1)) -> FC -> Softmax`のようなニューラルネットワークを実現できる．6層の場合，`num_layer`は3である．
+#### 1-2．ニューラルネットワークの層の指定
+例えば，`((FC -> ReLU) * 3) -> FC -> Softmax`の8層のニューラルネットワークを学習させるとする．
+18 ~ 行目のマクロを
+```c
+#define layer_num 4 //層の総数としてはlayer_num * 2となる
+#define m0 50 //1つ目の全結合層の出力ベクトルの要素数
+#define m1 100 //2つ目の全結合層の出力ベクトルの要素数
+#define m2 40 //3つ目の全結合層の出力ベクトルの要素数
+```
+として，43,44行目を
+```c
+int m[layer_num] = {m0, m1, m2, 10};
+int n[layer_num] = {784, m0, m1, m2};
+```
+とすることで，`50 * 784`,`100 * 50`,`40 * 100`,`40 * 10`の8層ニューラルネットワークで学習できる．
+#### 1-3．関数とパラメータについて
+3層の場合，重みパラメータは行列一つであるがら
+```c
+float * A = malloc(FLOAT_SIZE*m*n)
+```
+としていたが，N層の場合，重みパラメータ行列が`num_layer`つ以上存在する．よって
+```c
+float * A1 = malloc(FLOAT_SIZE*m[0]*n[0])
+float * A2 = malloc(FLOAT_SIZE*m[1]*n[1])
+float * A3 = malloc(FLOAT_SIZE*m[2]*n[2])
+```
+としてもよいが
+```c
+float * A[3];
+A[0] = malloc(FLOAT_SIZE*m[0]*n[0]);
+A[1] = malloc(FLOAT_SIZE*m[1]*n[1]);
+A[2] = malloc(FLOAT_SIZE*m[2]*n[2]);
+```
+とすることで，パラメータを一つの変数にまとめた．この場合，Aは配列の配列であり，ようはポインタの配列である．
+よって，例えば`mnist3layer.c`では
+```c
+void backward3(const float * A, const float * b, const float * x, unsigned char t, float * y, float * dA, float * db);
+```
+となっているところを，`mnistNlayer.c`では
+```c
+void backward(const float ** A, const float ** b, const float * x, unsigned char t, float * y, float ** dA, float ** db)
+```
+となっている．相違点としては，`A`,`b`,`dA`,`db`の型が`float`型のポインタのポインタとなっている．これは上述の理由からである．
+#### 1-4．パラメータの保存と読み込み
