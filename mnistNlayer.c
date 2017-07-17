@@ -19,6 +19,17 @@
 #define m0 50 //1つ目の全結合層の出力ベクトルの要素数
 #define m1 100 //2つ目の全結合層の出力ベクトルの要素数
 
+//SGDのハイパーパラメータ
+#define epoch_SGD 30
+#define batch_size_SGD 100
+#define initial_learning_rate_SGD 0.5
+
+//MomentumSGDのハイパーパラメータ
+#define epoch_MomentumsGD 30
+#define batch_size_MomentumSGD 100
+#define learning_rate_MomentumSGD 0.01
+#define momentum_MomentumSGD 0.1
+
 void SGD(int epoch, int batch_size, float initial_learning_rate, const char * filename_without_formatname, const char * formatname);
 void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum, const char * filename_without_formatname, const char * formatname);
 
@@ -36,9 +47,9 @@ int n[layer_num] = {784, m0, m1};
 int main(int argc, char const * argv[]) {
     if (!strcmp(argv[1], "train")) {
         if (!strcmp(argv[2], "SGD")) {
-            SGD(30, 100, 0.5, argv[3], argv[4]);
+            SGD(epoch_SGD, batch_size_SGD, initial_learning_rate_SGD, argv[3], argv[4]);
         } else if (!strcmp(argv[2], "MomentumSGD")) {
-            MomentumSGD(30, 100, 001, 0.1, argv[3], argv[4]);
+            MomentumSGD(epoch_MomentumsGD, batch_size_MomentumSGD, learning_rate_MomentumSGD, momentum_MomentumSGD, argv[3], argv[4]);
         }
     } else if (!strcmp(argv[1], "inference")) {
         inferenceMode(argv[2], argv[3], argv[4]);

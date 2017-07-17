@@ -14,6 +14,15 @@
 
 #define FLOAT_SIZE sizeof(float)
 
+#define epoch_SGD 30
+#define batch_size_SGD 100
+#define initial_learning_rate_SGD 1
+
+#define epoch_MomentumsGD 30
+#define batch_size_MomentumSGD 100
+#define learning_rate_MomentumSGD 0.01
+#define momentum_MomentumSGD 0.1
+
 void SGD(int epoch, int batch_size, float initial_learning_rate, const char * filename);
 void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum, const char * filename);
 
@@ -25,9 +34,9 @@ void inferenceMode(const char * filename, const char * bmp_filename);
 int main(int argc, char const * argv[]) {
     if (!strcmp(argv[1], "train")) {
         if (!strcmp(argv[2], "SGD")) {
-            SGD(50, 100, 1, argv[3]);
+            SGD(epoch_SGD, batch_size_SGD, initial_learning_rate_SGD, argv[3]);
         } else if (!strcmp(argv[2], "MomentumSGD")) {
-            MomentumSGD(10, 100, 0.01, 0.1, argv[3]);
+            MomentumSGD(epoch_MomentumsGD, batch_size_MomentumSGD, learning_rate_MomentumSGD, momentum_MomentumSGD, argv[3]);
         }
 
     } else if (!strcmp(argv[1], "inference")) {
