@@ -64,14 +64,15 @@ gcc -Wall mnistNlayer.c nnlib.c -lm
 3. 正規分布に従った乱数によって初期化(95 ~ 96行目)
 4. ランダムシャッフル用の配列`index`を作成し，0 ~ 59999で初期化する．(98 ~ 102行目)
 5. 配列`index`を`shuffle`によってランダムシャッフルする．(110行目)
-6. 進捗状況の表示をする．(113 ~ 115行目)
-7. 平均勾配`dA_sum`,`db_sum`の初期化をする．(117 ~ 118行目)
-8. バッチサイズ分の勾配を`backward3`を用いて求め．`dA_sum`,`db_sum`に足していく．この際`index`を用いて，バッチに用いる訓練データがランダムになるようにする．(119 ~ 126行目)
-9. `dA_sum`,`db_sum`をバッチサイズで割ったもの平均勾配として，これを用いて`A`,`b`を更新する
-10. 5 ~ 8の操作を訓練データ / バッチサイズ分繰り返す．
-11. テストデータを用いて，学習したパラメータの正解率と損失を計算，表示する．
-12. パラメータを指定されたファイルに保存する．
-13. 4 ~ 12の操作を1エッポクとして，マクロで指定したエッポク数分繰り返す．
+6. 学習率を`initial_learning_rate` / エッポク数として更新する．
+7. 進捗状況の表示をする．(113 ~ 115行目)
+8. 平均勾配`dA_sum`,`db_sum`の初期化をする．(117 ~ 118行目)
+9. バッチサイズ分の勾配を`backward3`を用いて求め．`dA_sum`,`db_sum`に足していく．この際`index`を用いて，バッチに用いる訓練データがランダムになるようにする．(119 ~ 126行目)
+10. `dA_sum`,`db_sum`をバッチサイズで割ったもの平均勾配として，これを用いて`A`,`b`を更新する
+11. 7 ~ 10の操作を訓練データ / バッチサイズ分繰り返す．
+12. テストデータを用いて，学習したパラメータの正解率と損失を計算，表示する．
+13. パラメータを指定されたファイルに保存する．
+14. 4 ~ 13の操作を1エッポクとして，マクロで指定したエッポク数分繰り返す．
 
 ## 2．関数の説明
 (注記) 「`float`型でサイズが`m`の配列`x`」と書いてあるものは，「ポインタ`x`の以後`sizeof(float) * m`byte分に`m`個の`float`型の数値が存在する」と仮定し，それを保証する．確保されているサイズがそれ以下の場合，不具合をおこす．
@@ -181,9 +182,25 @@ void progress(float x)
 ```
 のように表示する．
 ### 2．`mnist3layer.c`の関数
-#### 2-1．行列の表示 `print`
+#### 2-1．確率的勾配降下法 `SGD`
 ```c
-void print(int m, int n, const float * x)
+void SGD(int epoch, int batch_size, float initial_learning_rate, const char * filename)
 ```
-サイズが`m * n`の配列`x`を`m * n`行列として表示する．
+確率的勾配降下法を用いて学習する．`epoch`はエッポク数，`batch_size`はバッチサイズ，`initial_learning_rate`は最初の学習率，`filename`はパラメータを保存するファイル名である．
+#### 2-2．モーメンタムSGD `MomentumSGD`
+```c
+void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum, const char * filename)
+```
+モーメンタムSGDを用いて学習する．`epoch`はエッポク数，`batch_size`はバッチサイズ，`learning_rate`は学習率，`filename`はパラメータを保存するファイル名である．
+#### 2-3．3層の推論 `inference3`
+```c
+int inference3(const float * A, const float * b, const float * x, float * y)
+```
+fc -> relu -> softmax の3層で推論する．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`x`は入力ベクトルの配列，`y`は出力ベクトルの配列である．
+#### 2-4．3層の誤差逆伝播 `backward3`
+```c
+void backward3(const float * A, const float * b, const float * x, unsigned char t, float * y, float * dA, float * db)
+```
+fc -> relu -> softmax の3層のニューラルネットワークを，誤差逆伝播法を用いて勾配を求める．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`x`は入力ベクトルの配列，`t`は正解ラベル，`y`は出力ベクトルの配列，`dA`,`db`はそれぞれ`A`,`b`の勾配である．
+
 ## 拡張・改善した点

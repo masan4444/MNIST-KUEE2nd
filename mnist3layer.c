@@ -348,14 +348,14 @@ int inference3(const float * A, const float * b, const float * x, float * y) {
 
 /**
  * @fn
- * fc -> relu -> softmax の3層のニューラルネットワークを，誤差逆伝播法を用いて偏微分を求める
+ * fc -> relu -> softmax の3層のニューラルネットワークを，誤差逆伝播法を用いて勾配を求める
  * @param (const float * A) 重みパラメータ，行列Aの配列
  * @param (const float * b) バイアスパラメータ，ベクトルbの配列
  * @param (const float * x) 入力ベクトルの配列
  * @param (unsigned char t) 正解ラベル(0 ~ 9)
  * @param (float * y) 出力ベクトルの配列
- * @param (float * dA) 重みパラメータAの偏微分の配列
- * @param (float * db) バイアスパラメータbの偏微分の配列
+ * @param (float * dA) 重みパラメータAの勾配の配列
+ * @param (float * db) バイアスパラメータbの勾配の配列
  * @return 無し
  */
 void backward3(const float * A, const float * b, const float * x, unsigned char t, float * y, float * dA, float * db) {

@@ -362,14 +362,14 @@ int inference(const float ** A, const float ** b, const float * x, float * y) {
 
 /**
  * @fn
- * (fc -> relu) * (layer_num - 1) -> fc -> softmax の(layer_num * 2)層構造のニューラルネットワークを，誤差逆伝播法を用いて偏微分を求める
+ * (fc -> relu) * (layer_num - 1) -> fc -> softmax の(layer_num * 2)層構造のニューラルネットワークを，誤差逆伝播法を用いて勾配を求める
  * @param (const float ** A) 重みパラメータ，行列Aの配列の配列．i番目の全結合層の重みパラメータ行列がA[i]である．
  * @param (const float ** b) バイアスパラメータ，ベクトルbの配列の配列．i番目の全結合層のバイアスパラメータベクトルがb[i]である．
  * @param (const float * x) 入力ベクトルの配列
  * @param (unsigned char t) 正解ラベル(0 ~ 9)
  * @param (float * y) 出力ベクトルの配列
- * @param (float ** dA) 重みパラメータAの偏微分の配列の配列．i番目の全結合層の重みパラメータの偏微分がdA[i]である．
- * @param (float ** db) バイアスパラメータbの偏微分の配列の配列．i番目の全結合層のバイアスパラメータの偏微分がdb[i]である．
+ * @param (float ** dA) 重みパラメータAの勾配の配列の配列．i番目の全結合層の重みパラメータの勾配がdA[i]である．
+ * @param (float ** db) バイアスパラメータbの勾配の配列の配列．i番目の全結合層のバイアスパラメータの勾配がdb[i]である．
  * @return 無し
  */
 void backward(const float ** A, const float ** b, const float * x, unsigned char t, float * y, float ** dA, float ** db) {
