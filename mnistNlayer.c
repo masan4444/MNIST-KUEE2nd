@@ -28,7 +28,7 @@
 #define epoch_MomentumsGD 30
 #define batch_size_MomentumSGD 100
 #define learning_rate_MomentumSGD 0.01
-#define momentum_MomentumSGD 0.1
+#define momentum_MomentumSGD 0.9
 
 void SGD(int epoch, int batch_size, float initial_learning_rate, const char * filename_without_formatname, const char * formatname);
 void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum, const char * filename_without_formatname, const char * formatname);

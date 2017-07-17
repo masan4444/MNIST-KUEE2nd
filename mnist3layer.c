@@ -14,17 +14,27 @@
 
 #define FLOAT_SIZE sizeof(float)
 
+//SGDのハイパーパラメータ
 #define epoch_SGD 30
 #define batch_size_SGD 100
-#define initial_learning_rate_SGD 1
+#define initial_learning_rate_SGD 0.5
 
-#define epoch_MomentumsGD 30
+//MomentumSGDのハイパーパラメータ
+#define epoch_MomentumSGD 30
 #define batch_size_MomentumSGD 100
 #define learning_rate_MomentumSGD 0.01
-#define momentum_MomentumSGD 0.1
+#define momentum_MomentumSGD 0.5
+
+//AdaGradのハイパーパラメータ
+#define epoch_AdaGrad 30
+#define batch_size_AdaGrad 100
+#define learning_rate_AdaGrad 0.01
 
 void SGD(int epoch, int batch_size, float initial_learning_rate, const char * filename);
 void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum, const char * filename);
+void AdaGrad(int epoch, int batch_size, float learning_rate, const char * filename);
+
+void adagrad(int m, float learning_rate, float * h, const float * dx, float * x);
 
 int inference3(const float * A, const float * b, const float * x, float * y);
 void backward3(const float * A, const float * b, const float * x, unsigned char t, float * y, float * dA, float * db);
@@ -36,9 +46,10 @@ int main(int argc, char const * argv[]) {
         if (!strcmp(argv[2], "SGD")) {
             SGD(epoch_SGD, batch_size_SGD, initial_learning_rate_SGD, argv[3]);
         } else if (!strcmp(argv[2], "MomentumSGD")) {
-            MomentumSGD(epoch_MomentumsGD, batch_size_MomentumSGD, learning_rate_MomentumSGD, momentum_MomentumSGD, argv[3]);
+            MomentumSGD(epoch_MomentumSGD, batch_size_MomentumSGD, learning_rate_MomentumSGD, momentum_MomentumSGD, argv[3]);
+        } else if (!strcmp(argv[2], "AdaGrad")) {
+            AdaGrad(epoch_AdaGrad, batch_size_AdaGrad, learning_rate_AdaGrad, argv[3]);
         }
-
     } else if (!strcmp(argv[1], "inference")) {
         inferenceMode(argv[2], argv[3]);
         //(filename, bmp_filenam),
@@ -81,8 +92,8 @@ void SGD(int epoch, int batch_size, float initial_learning_rate, const char * fi
     float * dA_sum = malloc(FLOAT_SIZE*784*10);
     float * db_sum = malloc(FLOAT_SIZE*10);
 
-    rand_init(784*10, 44, A);
-    rand_init(10, 45, b);
+    normal_rand_init(784*10, 1, A);
+    normal_rand_init(10, 2, b);
 
     int * index = malloc(sizeof(int)*60000);
     int i;
@@ -221,6 +232,90 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
         printf("epoch:%d acc_rate:%.2f%% loss:%.2f\n", epoch_time + 1, acc_rate, Loss);
 
         save(filename, 10, 784, A, b);
+    }
+}
+
+void AdaGrad(int epoch, int batch_size, float learning_rate, const char * filename) {
+    float * train_x = NULL;
+    unsigned char * train_y = NULL;
+    int train_count = - 1;
+
+    float * test_x = NULL;
+    unsigned char * test_y = NULL;
+    int test_count = - 1;
+
+    int width = - 1;
+    int height = - 1;
+
+    load_mnist(&train_x, &train_y, &train_count,
+               &test_x, &test_y, &test_count,
+               &width, &height);
+
+    float * y = malloc(FLOAT_SIZE*10);
+    float * A = malloc(FLOAT_SIZE*784*10);
+    float * b = malloc(FLOAT_SIZE*10);
+    float * dA = malloc(FLOAT_SIZE*784*10);
+    float * db = malloc(FLOAT_SIZE*10);
+
+    float * dA_sum = malloc(FLOAT_SIZE*784*10);
+    float * db_sum = malloc(FLOAT_SIZE*10);
+
+    float * A_h = malloc(FLOAT_SIZE*784*10);
+    float * b_h = malloc(FLOAT_SIZE*10);
+
+    normal_rand_init(784*10, 1, A);
+    normal_rand_init(10, 2, b);
+
+    init(784*10, 0, A_h);
+    init(10, 0, b_h);
+
+    int * index = malloc(sizeof(int)*60000);
+    int i;
+    for (i = 0; i < 60000; i ++) {
+        index[i] = i;
+    }
+
+    int j;
+    int epoch_time;
+
+    printf("optimizer=AdaGrad\nepoch=%d, batch_size=%d, learning_rate=%f\n", epoch, batch_size, learning_rate);
+
+    for (epoch_time = 0; epoch_time < epoch; epoch_time ++) {
+        shuffle(60000, index, epoch_time); //epoch_time as seed
+        for (i = 0; i < 60000/batch_size; i ++) {
+            printf("epoch:%d ", epoch_time + 1);
+            progress((float)i / (float)(60000/batch_size));
+            printf("\r");
+
+            init(784*10, 0, dA_sum);
+            init(10, 0, db_sum);
+            for (j = 0; j < batch_size; j ++) {
+                init(784*10, 0, dA);
+                init(10, 0, db);
+                init(10, 0, y);
+                backward3(A, b, train_x + index[i*batch_size + j] * 784, train_y[index[i*batch_size + j]], y, dA, db);
+                add(784*10, dA, dA_sum);
+                add(10, db, db_sum);
+            }
+            adagrad(784*10, learning_rate, A_h, dA_sum, A);
+            adagrad(10, learning_rate, b_h, db_sum, b);
+        }
+        float acc_rate;
+        float Loss;
+        accRate_and_loss(A, b, test_x, test_y, &acc_rate, &Loss);
+        printf("epoch:%d acc_rate:%.2f%% loss:%.2f learning_rate:%.4f\n", epoch_time + 1, acc_rate, Loss, learning_rate);
+
+        save(filename, 10, 784, A, b);
+   }
+}
+
+void adagrad(int m, float learning_rate, float * h, const float * dx, float * x) {
+    int i;
+    for (i = 0; i < m; i ++) {
+        h[i] = h[i] + (dx[i] * dx[i]);
+    }
+    for (i = 0; i < m; i ++) {
+        x[i] = x[i] - learning_rate * dx[i] / (sqrt(h[i]) + 1e-7);
     }
 }
 

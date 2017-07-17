@@ -58,11 +58,20 @@ gcc -Wall mnistNlayer.c nnlib.c -lm
 ./a.out inference A dat number.bmp
 ```
 とすると，`A?.dat`を用いて，`number.bmp`に書かれている数字を推論する．
-### 5．プログラムの処理の流れ
-#### 1．`mnist3layer`の場合
-まず，
-##### 1．
-
+### 5．プログラムの大まかな処理の流れ`SGD`
+1. マクロにおいて，optimizerのハイパーパラメータを設定する．(17 ~ 31行目)
+2. メモリの割り当てる(86 ~ 93行目)
+3. 正規分布に従った乱数によって初期化(95 ~ 96行目)
+4. ランダムシャッフル用の配列`index`を作成し，0 ~ 59999で初期化する．(98 ~ 102行目)
+5. 配列`index`を`shuffle`によってランダムシャッフルする．(110行目)
+6. 進捗状況の表示をする．(113 ~ 115行目)
+7. 平均勾配`dA_sum`,`db_sum`の初期化をする．(117 ~ 118行目)
+8. バッチサイズ分の勾配を`backward3`を用いて求め．`dA_sum`,`db_sum`に足していく．この際`index`を用いて，バッチに用いる訓練データがランダムになるようにする．(119 ~ 126行目)
+9. `dA_sum`,`db_sum`をバッチサイズで割ったもの平均勾配として，これを用いて`A`,`b`を更新する
+10. 5 ~ 8の操作を訓練データ / バッチサイズ分繰り返す．
+11. テストデータを用いて，学習したパラメータの正解率と損失を計算，表示する．
+12. パラメータを指定されたファイルに保存する．
+13. 4 ~ 12の操作を1エッポクとして，マクロで指定したエッポク数分繰り返す．
 
 ## 2．関数の説明
 (注記) 「`float`型でサイズが`m`の配列`x`」と書いてあるものは，「ポインタ`x`の以後`sizeof(float) * m`byte分に`m`個の`float`型の数値が存在する」と仮定し，それを保証する．確保されているサイズがそれ以下の場合，不具合をおこす．
@@ -107,11 +116,11 @@ void rand_init(int n, unsigned seed, float * o)
 void fc(int m, int n, const float * x, const float * A, const float * b, float * y)
 ```
 サイズが`n`の入力ベクトルを受け取り，サイズが`m`の出力ベクトルを計算する．`x`が入力ベクトルの配列であり，`y`が出力ベクトルの配列である．`A`は全結合層の重みパラメータであり，`m * n`の行列を配列に格納したものである．`b`はバイアスパラメータであり，要素数がが`m`のベクトルを配列に格納したもの．
-#### 1-9．活性化関数ReLu `relu`
+#### 1-9．活性化関数ReLU `relu`
 ```c
 void relu(int m, const float * x, float * y)
 ```
-要素数が`m`のベクトルを配列に格納したもの`x`を受け取り，ReLuの計算結果をに`y`代入する．
+要素数が`m`のベクトルを配列に格納したもの`x`を受け取り，ReLUの計算結果をに`y`代入する．
 #### 1-10．活性化関数Softmax `softmax`
 ```c
 void softmax(int m, const float * x, float * y)
@@ -122,11 +131,11 @@ void softmax(int m, const float * x, float * y)
 void softmaxwithloss_bwd(int m, const float * y, unsigned char t, float * dx)
 ```
 `m`はベクトルのサイズであり，出力ベクトルの配列`y`，正解ラベル`t`を用いて，Softmaxと損失関数の偏微分を計算し，`dx`に格納する．
-#### 1-12．ReLuの誤差逆伝播 `relu_bwd`
+#### 1-12．ReLUの誤差逆伝播 `relu_bwd`
 ```c
 void relu_bwd(int m, const float * x, const float * dy, float * dx)
 ```
-`m`はベクトルのサイズであり，入力ベクトルの配列`x`，下流の偏微分の配列`dy`を用いて，ReLuの偏微分を計算し，`dx`に格納する
+`m`はベクトルのサイズであり，入力ベクトルの配列`x`，下流の偏微分の配列`dy`を用いて，ReLUの偏微分を計算し，`dx`に格納する
 #### 1-13．全結合層(fc)の誤差逆伝播 `fc_bwd`
 ```c
 void fc_bwd(int m, int n, const float * x, const float * dy, const float * A, float * dA, float * db, float * dx)
@@ -171,4 +180,10 @@ void progress(float x)
 [======>   ] 75.3%
 ```
 のように表示する．
+### 2．`mnist3layer.c`の関数
+#### 2-1．行列の表示 `print`
+```c
+void print(int m, int n, const float * x)
+```
+サイズが`m * n`の配列`x`を`m * n`行列として表示する．
 ## 拡張・改善した点
