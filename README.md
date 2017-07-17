@@ -1,6 +1,7 @@
 # 最終課題
-###### 氏名:
-###### 学籍番号:
+###### 氏名：
+###### 学籍番号：
+###### Github：https://github.com/masan4444/MNIST-KUEE2nd
 
 ## 1．プログラム概要
 ### 1．ソースコードについて
@@ -60,7 +61,7 @@ gcc -Wall mnistNlayer.c nnlib.c -lm
 とすると，`A?.dat`を用いて，`number.bmp`に書かれている数字を推論する．
 ### 5．プログラムの大まかな処理の流れ`SGD`
 1. マクロにおいて，optimizerのハイパーパラメータを設定する．(17 ~ 31行目)
-2. メモリの割り当てる(86 ~ 93行目)
+2. メモリを割り当てる(86 ~ 93行目)
 3. 正規分布に従った乱数によって初期化(95 ~ 96行目)
 4. ランダムシャッフル用の配列`index`を作成し，0 ~ 59999で初期化する．(98 ~ 102行目)
 5. 配列`index`を`shuffle`によってランダムシャッフルする．(110行目)
@@ -75,7 +76,7 @@ gcc -Wall mnistNlayer.c nnlib.c -lm
 14. 4 ~ 13の操作を1エッポクとして，マクロで指定したエッポク数分繰り返す．
 
 ## 2．関数の説明
-(注記) 「`float`型でサイズが`m`の配列`x`」と書いてあるものは，「ポインタ`x`の以後`sizeof(float) * m`byte分に`m`個の`float`型の数値が存在する」と仮定し，それを保証する．確保されているサイズがそれ以下の場合，不具合をおこす．
+(注記) 「`float`型でサイズが`m`の配列`x`」と書いてあるものは，「ポインタ`x`が指し示すアドレスの以後`sizeof(float) * m`byte分に`m`個の`float`型の数値が存在する」と仮定し，それを保証する．確保されているサイズがそれ以下の場合，不具合をおこす．
 ### 1．`nnlib.c`の関数
 #### 1-1．行列の表示 `print`
 ```c
@@ -121,12 +122,12 @@ void fc(int m, int n, const float * x, const float * A, const float * b, float *
 ```c
 void relu(int m, const float * x, float * y)
 ```
-要素数が`m`のベクトルを配列に格納したもの`x`を受け取り，ReLUの計算結果をに`y`代入する．
+要素数が`m`のベクトルを配列に格納したもの`x`を受け取り，ReLUの計算結果を`y`に代入する．
 #### 1-10．活性化関数Softmax `softmax`
 ```c
 void softmax(int m, const float * x, float * y)
 ```
-要素数が`m`のベクトルを配列に格納したもの`x`を受け取り，Softmaxの計算結果をに`y`代入する．
+要素数が`m`のベクトルを配列に格納したもの`x`を受け取り，Softmaxの計算結果をに`y`に代入する．
 #### 1-11．Softmaxと損失関数の誤差逆伝播 `softmaxwithloss_bwd`
 ```c
 void softmaxwithloss_bwd(int m, const float * y, unsigned char t, float * dx)
@@ -196,7 +197,7 @@ void MomentumSGD(int epoch, int batch_size, float learning_rate, float momentum,
 ```c
 int inference3(const float * A, const float * b, const float * x, float * y)
 ```
-fc -> relu -> softmax の3層で推論する．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`x`は入力ベクトルの配列，`y`は出力ベクトルの配列である．引数に出力ベクトルの配列を追加することで，下記のaccRate_and_loss関数のおいて，正解率と損失関数を同時に求めることが出来た．
+fc -> relu -> softmax の3層で推論する．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`x`は入力ベクトルの配列，`y`は出力ベクトルの配列である．引数に出力ベクトルの配列を追加することで，下記の`accRate_and_loss`関数のおいて，正解率と損失関数を同時に求めることが出来た．
 #### 2-4．3層の誤差逆伝播 `backward3`
 ```c
 void backward3(const float * A, const float * b, const float * x, unsigned char t, float * y, float * dA, float * db)
@@ -206,12 +207,12 @@ fc -> relu -> softmax の3層のニューラルネットワークを，誤差逆
 ```c
 void accRate_and_loss(const float * A, const float * b, const float * test_x, const unsigned char * test_y, float * accRate, float * Loss)
 ```
-fc -> relu -> softmax の3層のニューラルネットワークに対して，テストデータの正解率と損失関数を表示する．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`test_x`は入力ベクトル(テストデータ)をすべて集めた配列，`test_y`は正解ラベル(テストデータ)をすべて集めた配列である．正解率と損失を同時に求めているため，計算結果はポインタで所得している．
+fc -> relu -> softmax の3層のニューラルネットワークに対して，テストデータの正解率と損失関数を表示する．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`test_x`は入力ベクトル(テストデータ)をすべて集めた配列，`test_y`は正解ラベル(テストデータ)をすべて集めた配列である．正解率と損失を同時に求めているため，計算結果はポインタで取得している．
 #### 2-6．画像データをもとに，数字を推論 `inferenceMode`
 ```c
 void inferenceMode(const char * filename, const char * bmp_filename)
 ```
-`filename`に保存されているパラメータを用いて，`bmp_filename`に書かれている数字を3層ニューラルネットワークで推論する．
+`filename`に保存されているパラメータを用いて，`bmp_filename`に書かれている数字を3層ニューラルネットワークで推論し，画面に表示する．
 ### 3．N層ニューラルネットワーク`mnistNlayer.c`の関数
 基本的に`mnist3layer.c`と同じであるが，相違点を次章で述べる．
 
@@ -269,15 +270,15 @@ void backward(const float ** A, const float ** b, const float * x, unsigned char
 
 #### 1-5．学習の効率
 例として，6層の'SGD'(`epoch=10,batch_size=100,initial_learning_rate=0.5`)の場合，
-`acc_rate`:91.08%,`loss`:0.33となり
+`acc_rate`:97.04%,`loss`:0.09となり大幅に学習が進んだ．
 
 ### 2．学習率を変化させる
 SGDにおいて，学習率をエッポクごとに減少させていくことで，学習をすばやく進めることができた．具体的にはエッポクごとの学習率を「最初の学習率 / エッポク数」とした．
 
 ### 3．Heの初期値 (正規分布に従った乱数による初期化)
 `normal_rand`関数と`normal_rand_init`関数によって，`n`個の要素をもつパラメータを平均`0`，分散`sqrt(2/n)`の正規分布に従った乱数で初期化できる．
-これにより，3層の`SGD`(`epoch=10,batch_size=100,initial_learning_rate=0.4`)の場合，`acc_rate`:70.97%，`loss`:0.82から`acc_rate`:81.57%，`loss`:0.73となった．
+これを用いることで，3層の`SGD`(`epoch=10,batch_size=100,initial_learning_rate=0.4`)の場合，`acc_rate`:70.97%，`loss`:0.82から`acc_rate`:81.57%，`loss`:0.73と学習がすすんだ．
 
 ### 4．モーメンタムSGD
 パラメータの更新に慣性項と呼ばれるものを付与する．具体的には，更新の際に，学習率*勾配に加え，前回のパラメータの更新量にmomentumと呼ばれる定数をかけた量を足す．
-例として，(`epoch=10,batch_size=100,learning_rate=0.01,momentum=0.5`)の場合，`acc_rate`:91.08%,`loss`:0.33となり，大幅に学習が進む．
+例として3層のモーメンタムSGD，(`epoch=10,batch_size=100,learning_rate=0.01,momentum=0.5`)の場合，`acc_rate`:91.08%,`loss`:0.33となり，大幅に学習が進んだ．
