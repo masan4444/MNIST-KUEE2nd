@@ -17,7 +17,7 @@
 //SGDのハイパーパラメータ
 #define epoch_SGD 30
 #define batch_size_SGD 100
-#define initial_learning_rate_SGD 0.5
+#define initial_learning_rate_SGD 0.4
 
 //MomentumSGDのハイパーパラメータ
 #define epoch_MomentumSGD 30

@@ -167,7 +167,7 @@ void load(const char * filename, int m, int n, float * A, float * b)
 float normal_rand(float mu, float sigma)
 ```
 平均`mu`，分散`sigma`の正規分布に従った`float`型の乱数を生成し，返り値で返す．
-#### 1-19．サイズが`n`の配列を平均0，分散sqrt(2/n)の正規分布に従った乱数で初期化 `normal_rand_init`
+#### 1-19．Heの初期値 `normal_rand_init`
 ```c
 void normal_rand_init(int n, unsigned seed, float * o)
 ```
@@ -202,7 +202,7 @@ fc -> relu -> softmax の3層で推論する．`A`は重みパラメータ行列
 void backward3(const float * A, const float * b, const float * x, unsigned char t, float * y, float * dA, float * db)
 ```
 fc -> relu -> softmax の3層のニューラルネットワークを，誤差逆伝播法を用いて勾配を求める．`A`は重みパラメータ行列の配列，`b`はバイアスパラメータベクトルの配列，`x`は入力ベクトルの配列，`t`は正解ラベル，`y`は出力ベクトルの配列，`dA`,`db`はそれぞれ`A`,`b`の勾配である．
-#### 2-5．正解率と損失そ計算 `accRate_and_loss`
+#### 2-5．正解率と損失の計算 `accRate_and_loss`
 ```c
 void accRate_and_loss(const float * A, const float * b, const float * test_x, const unsigned char * test_y, float * accRate, float * Loss)
 ```
@@ -239,7 +239,7 @@ int n[layer_num] = {784, m0, m1, m2};
 ```c
 float * A = malloc(FLOAT_SIZE*m*n)
 ```
-としていたが，N層の場合，重みパラメータ行列が`num_layer`つ以上存在する．よって
+としていたが，N層の場合，重みパラメータ行列が`num_layer`個以上存在する．よって
 ```c
 float * A1 = malloc(FLOAT_SIZE*m[0]*n[0])
 float * A2 = malloc(FLOAT_SIZE*m[1]*n[1])
@@ -263,3 +263,21 @@ void backward(const float ** A, const float ** b, const float * x, unsigned char
 ```
 となっている．相違点としては，`A`,`b`,`dA`,`db`の型が`float`型のポインタのポインタとなっている．これは上述の理由からである．
 #### 1-4．パラメータの保存と読み込み
+`mnistNlayer.c`では学習したパラメータを保存，読み込みするとき，`mnist3layer.c`のように`char * filename`として指定するのではなく，`char * filename_without_formatname`と`char * formatname`の2つに分けている．
+例として，`num_layer`が3，`char * filename_without_formatname`
+が`A`,`char * formatname`が`dat`のとき，パラメータはそれぞれ`A1.dat`,`A2.dat`,`A3.dat`に保存される．
+
+#### 1-5．学習の効率
+例として，6層の'SGD'(`epoch=10,batch_size=100,initial_learning_rate=0.5`)の場合，
+`acc_rate`:91.08%,`loss`:0.33となり
+
+### 2．学習率を変化させる
+SGDにおいて，学習率をエッポクごとに減少させていくことで，学習をすばやく進めることができた．具体的にはエッポクごとの学習率を「最初の学習率 / エッポク数」とした．
+
+### 3．Heの初期値 (正規分布に従った乱数による初期化)
+`normal_rand`関数と`normal_rand_init`関数によって，`n`個の要素をもつパラメータを平均`0`，分散`sqrt(2/n)`の正規分布に従った乱数で初期化できる．
+これにより，3層の`SGD`(`epoch=10,batch_size=100,initial_learning_rate=0.4`)の場合，`acc_rate`:70.97%，`loss`:0.82から`acc_rate`:81.57%，`loss`:0.73となった．
+
+### 4．モーメンタムSGD
+パラメータの更新に慣性項と呼ばれるものを付与する．具体的には，更新の際に，学習率*勾配に加え，前回のパラメータの更新量にmomentumと呼ばれる定数をかけた量を足す．
+例として，(`epoch=10,batch_size=100,learning_rate=0.01,momentum=0.5`)の場合，`acc_rate`:91.08%,`loss`:0.33となり，大幅に学習が進む．
