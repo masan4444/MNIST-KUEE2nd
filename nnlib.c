@@ -60,7 +60,7 @@ void scale(int n, float x, float * o) {
 
 /**
  * @fn
- * 配列yを定数倍し，配列oに足す
+ * 配列を定数倍し，別の配列に足す
  * @param (int n) 配列のサイズ
  * @param (float x) 定数倍する数
  * @param (float * y) 定数倍され，足す配列
@@ -239,7 +239,7 @@ void relu_bwd(int m, const float * x, const float * dy, float * dx) {
  * 全結合層の誤差逆伝播を計算する
  * @param (int m) 入力ベクトルの要素数
  * @param (const float * x) 入力ベクトルの配列
- * @param (const float * dy) 上流の偏微分の配列
+ * @param (const float * dy) 下流の偏微分の配列
  * @param (cosnt float * A) 重みパラメータ行列の配列
  * @param (float * dA) Aの偏微分の配列
  * @param (float * db) bの偏微分の配列
