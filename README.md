@@ -216,7 +216,7 @@ void inferenceMode(const char * filename, const char * bmp_filename)
 ### 3．N層ニューラルネットワーク`mnistNlayer.c`の関数
 基本的に`mnist3layer.c`と同じであるが，相違点を次章で述べる．
 
-## 拡張・改善した点
+## 3．拡張・改善した点
 ### 1．N層ニューラルネットワーク`mnistNlayer.c`
 #### 1-1．概要
 6層のニューラルネットワークを拡張子し，6層以上のニューラルネットワークも学習することが出来るようにしたもの．具体的には `((FC -> ReLU) * (num_layer - 1)) -> FC -> Softmax`のようなニューラルネットワークを実現できる．6層の場合，`num_layer`は3である．
